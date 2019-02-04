@@ -39,7 +39,7 @@ void main()
 
 void printString(char* c, int d)
 {
-   if (d == 0) { 
+   /* if (d == 0) { */
       while (*c != '\0') {
          char al = *c;
          char ah = 14;
@@ -47,15 +47,15 @@ void printString(char* c, int d)
          interrupt(16, ax, 0, 0, 0);
          ++c;
       }
-   } else if (d == 1) { 
-      while (*c != '\0') { 
+   /* } else if (d == 1) {
+      while (*c != '\0') {
          char al = *c;
          char ah = 14;
          int ax = ah*256 + al;
          interrupt(23, ax, 0, 0, 0);
          ++c;
       }
-   }
+   } */
    return;
 }
 
