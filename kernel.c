@@ -32,31 +32,33 @@ void main()
 {
    makeInterrupt21();
    printLogo();
-   printString("Hello world.\r\n\0",0);
+   printString("Hello world.\r\n\0", 1);
    /* interrupt(33,0,"Hola mondo.\r\n\0",0,0); */
    while(1);
 }
 
 void printString(char* c, int d)
 {
-   /* if (d == 0) { */
-      while (*c != '\0') {
-         char al = *c;
-         char ah = 14;
-         int ax = ah*256 + al;
-         interrupt(16, ax, 0, 0, 0);
-         ++c;
-      }
-   /* } else if (d == 1) {
-      while (*c != '\0') {
-         char al = *c;
-         char ah = 14;
-         int ax = ah*256 + al;
-         interrupt(23, ax, 0, 0, 0);
-         ++c;
-      }
-   } */
-   return;
+  if (d == 0) {
+    while (*c != '\0') {
+      char al = *c;
+      char ah = 14;
+      int ax = ah*256 + al;
+      interrupt(16, ax, 0, 0, 0);
+      ++c;
+    }
+  } else if (d == 1) {
+    while (*c != '\0') {
+      char al = *c;
+      char ah = 14;
+      int ax = ah*256 + al;
+      interrupt(23, ax, 0, 0, 0);
+      ++c;
+
+      interrupt(23, 'q', 0, 0, 0);
+    }
+  }
+  return;
 }
 
 void printLogo()
@@ -68,7 +70,7 @@ void printLogo()
    printString("   //   \\\\        | |_) | | (_| | (__|   <| |__| | |__| |____) |\r\n\0",0);
    printString("._/'     `\\.      |____/|_|\\__,_|\\___|_|\\_\\_____/ \\____/|_____/\r\n\0",0);
    printString(" BlackDOS2020 v. 1.01, c. 2018. Based on a project by M. Black. \r\n\0",0);
-   printString(" Author(s): your name(s) here.\r\n\r\n\0",0);
+   printString(" Author(s): Kevin Klions.\r\n\r\n\0",0);
 }
 
 /* MAKE FUTURE UPDATES HERE */
