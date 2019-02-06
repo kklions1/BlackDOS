@@ -28,6 +28,10 @@ void handleInterrupt21(int,int,int,int);
 /* void printString(char*,int); */
 void printLogo();
 void readString(char* buffer);
+void readInt(int* n);
+void writeInt(int n);
+int mod(int a, int b);
+int div(int a, int b);
 
 void main()
 {
@@ -104,9 +108,55 @@ void readString(char* buffer) {
   buffer[count] = '\0';
   printString("\n\r\0", 0);
   return;
+}
+
+void readInt(int* buffer) {
+  char integer[10];
+  readString(integer);
+
+  int i;
+  int n = 0;
+  for (i = 0; i < 10; ++i) {
+      int temp = integer[i] - '0';
+      n = n*10 + temp;
+  }
+
+  buffer = n;
+}
+
+void writeInt(int n) {
+  char string[9];
+  if (n < 0) {
+    string[0] = '-';
+    n = n * -1;
+  }
+
+  int i = 0;
+  while (n != 0) {
+    string[i++] = (char) ((mod(n, 10)) + '0');
+    n = div(n, 10);
+  }
+
+  string[i++] = '\r';
+  string[i++] = '\n';
 
 }
 
+int mod(int a, int b) {
+  int x = a;
+  while (x >= b) {
+    x = x - b;
+  }
+  return x;
+}
+
+int div(int a, int b) {
+  int q = 0;
+  while (q * b <= a) {
+    q++
+  }
+  return (q - 1);
+}
 
 /* ^^^^^^^^^^^^^^^^^^^^^^^^ */
 /* MAKE FUTURE UPDATES HERE */
