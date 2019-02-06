@@ -27,7 +27,7 @@
 void handleInterrupt21(int,int,int,int);
 /* void printString(char*,int); */
 void printLogo();
-void readString();
+void readString(char* buffer);
 
 void main()
 {
@@ -73,7 +73,7 @@ void printLogo()
 /* MAKE FUTURE UPDATES HERE */
 /* VVVVVVVVVVVVVVVVVVVVVVVV */
 
-void readString() {
+void readString(char* buffer) {
   int size = 80;
   int count = 0;
   char c;
@@ -81,13 +81,29 @@ void readString() {
   printString("\n\r\0");
 
   do {
-    if (c != 0xD) {
-      c = interrupt(22, 0, 0, 0, 0);
-      count++;
-      interrupt(16, 14*256 + c, 0, 0, 0);
+    c = interrupt(22, 0, 0, 0, 0);
+
+    /* 0x8 = Backspace; so if (NOT backspace) */
+    if (c != 0x8) {
+      buffer[count] = c;
     }
 
+    /* Print the typed character */
+    interrupt(16, 14*256 + c, 0, 0, 0);
+
+    /* This time checking if c is a backspace */
+    if (c == 0x8) {
+      if (count - 1 >= 0) {
+        --count; /* decrement */
+      }
+    } else {
+      count++;
+    }
   } while (c != 0xD && count < 80);
+
+  buffer[count] = '\0';
+  printString("\n\r\0", 0);
+  return;
 
 }
 
