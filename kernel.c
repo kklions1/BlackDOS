@@ -27,13 +27,15 @@
 void handleInterrupt21(int,int,int,int);
 /* void printString(char*,int); */
 void printLogo();
+void readString();
 
 void main()
 {
    makeInterrupt21();
    printLogo();
    /* printString("Hello world.\r\n\0", 1); */
-   interrupt(33,0,"Hola mondo.\r\n\0",0,0); 
+   interrupt(33,0,"Hola mondo.\r\n\0",0,0);
+   readString();
    while(1);
 }
 
@@ -71,6 +73,23 @@ void printLogo()
 /* MAKE FUTURE UPDATES HERE */
 /* VVVVVVVVVVVVVVVVVVVVVVVV */
 
+void readString() {
+  int size = 80;
+  int count = 0;
+  char c;
+
+  printString("\n\r\0");
+
+  do {
+    if (c != 0xD) {
+      c = interrupt(22, 0, 0, 0, 0);
+      count++;
+      interrupt(16, 14*256 + c, 0, 0, 0);
+    }
+
+  } while (c != 0xD && count < 80);
+
+}
 
 
 /* ^^^^^^^^^^^^^^^^^^^^^^^^ */
