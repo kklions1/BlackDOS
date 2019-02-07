@@ -35,11 +35,12 @@ int div(int a, int b);
 
 void main()
 {
+   char string[81];
    makeInterrupt21();
    printLogo();
    /* printString("Hello world.\r\n\0", 1); */
-   interrupt(33,0,"Hola mondo.\r\n\0",0,0);
-   readString();
+   interrupt(33, 0, "Hola mondo.\r\n\0", 0, 0);
+   interrupt(33, 1, string, 0, 0);
    while(1);
 }
 
@@ -112,10 +113,10 @@ void readString(char* buffer) {
 
 void readInt(int* buffer) {
   char integer[10];
-  readString(integer);
-
   int i;
   int n = 0;
+  readString(integer);
+
   for (i = 0; i < 10; ++i) {
       int temp = integer[i] - '0';
       n = n*10 + temp;
@@ -126,12 +127,13 @@ void readInt(int* buffer) {
 
 void writeInt(int n) {
   char string[9];
+  int i = 0;
+
   if (n < 0) {
     string[0] = '-';
     n = n * -1;
   }
 
-  int i = 0;
   while (n != 0) {
     string[i++] = (char) ((mod(n, 10)) + '0');
     n = div(n, 10);
@@ -139,7 +141,6 @@ void writeInt(int n) {
 
   string[i++] = '\r';
   string[i++] = '\n';
-
 }
 
 int mod(int a, int b) {
@@ -153,7 +154,7 @@ int mod(int a, int b) {
 int div(int a, int b) {
   int q = 0;
   while (q * b <= a) {
-    q++
+    q++;
   }
   return (q - 1);
 }
@@ -166,6 +167,9 @@ void handleInterrupt21(int ax, int bx, int cx, int dx)
 /*   return;  */
    switch(ax) {
       case 0: printString(bx,cx); break;
+      case 1: readString(bx); break;
+      case 13: writeInt(bx); break;
+      case 14: readInt(bx); break;
 /*      case 1: case 2: case 3: case 4: case 5: */
 /*      case 6: case 7: case 8: case 9: case 10: */
 /*      case 11: case 12: case 13: case 14: case 15: */
