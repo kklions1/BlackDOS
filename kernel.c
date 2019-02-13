@@ -165,8 +165,22 @@ int div(int a, int b) {
   return (q - 1);
 }
 
-void readSector(char* buffer, int count) { 
+void readSector(char* bx, int count) { 
+  int ah, al, dl;
+  int relSecNo, headNo, trackNo;
+  int ax, cx, dx;
+  ah = 2;
+  al = 1;
+  trackNo = div(count, 36);
+  relSecNo = mod(count, 18) + 1;
+  headNo = mod(div(count, 18), 2);
+  dl = 0;
 
+  ax = ah * 256 + al;
+  cx = trackNo * 256 + relSecNo;
+  dx = headNo * 256 + dl;
+
+  interrupt(19, ax, bx, cx, dx);
 }
 
 void writeSector(char* buffer, int count) { 
