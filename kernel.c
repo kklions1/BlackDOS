@@ -39,9 +39,12 @@ int div(int a, int b);
 void main()
 {
    char string[81];
+   char buffer[512];
    int test = 0;
    makeInterrupt21();
    printLogo();
+   interrupt(33, 2, buffer, 30, 0);
+   interrupt(33, 0, buffer, 0, 0);
    /* printString("Hello world.\r\n\0", 1); */
    interrupt(33, 0, "Hola mondo.\r\n\0", 0, 0);
    while(1);
@@ -165,7 +168,7 @@ int div(int a, int b) {
   return (q - 1);
 }
 
-void readSector(char* bx, int count) { 
+void readSector(char* bx, int count) {
   int ah, al, dl;
   int relSecNo, headNo, trackNo;
   int ax, cx, dx;
@@ -183,12 +186,26 @@ void readSector(char* bx, int count) {
   interrupt(19, ax, bx, cx, dx);
 }
 
-void writeSector(char* buffer, int count) { 
+void writeSector(char* buffer, int count) {
+  int ah, al, dl;
+  int relSecNo, headNo, trackNo;
+  int ax, cx, dx;
+  ah = 2;
+  al = 1;
+  trackNo = div(count, 36);
+  relSecNo = mod(count, 18) + 1;
+  headNo = mod(div(count, 18), 2);
+  dl = 0;
 
+  ax = 769;
+  cx = trackNo * 256 + relSecNo;
+  dx = headNo * 256 + dl;
+
+  interrupt(19, ax, bx, cx, dx);
 }
 
-void clearScreen(int bgColor, int fgColor) { 
-  
+void clearScreen(int bgColor, int fgColor) {
+
 }
 
 /* ^^^^^^^^^^^^^^^^^^^^^^^^ */
