@@ -47,6 +47,8 @@ void main()
    interrupt(33, 0, buffer, 0, 0);
    /* printString("Hello world.\r\n\0", 1); */
    interrupt(33, 0, "Hola mondo.\r\n\0", 0, 0);
+   interrupt(33, 12, 2, 12, 0);
+   interrupt(33, 0, "Hola mondo.\r\n\0", 0, 0);
    while(1);
 }
 
@@ -201,11 +203,21 @@ void writeSector(char* buffer, int count) {
   cx = trackNo * 256 + relSecNo;
   dx = headNo * 256 + dl;
 
-  interrupt(19, ax, bx, cx, dx);
+  interrupt(19, ax, buffer, cx, dx);
 }
 
 void clearScreen(int bgColor, int fgColor) {
+  int clearCount = 24;
+  int i = 0;
 
+  for (i = 0; i < 24; ++i) {
+    printString("\r\n\0", 0);
+  }
+  interrupt(16, 512, 0, 0, 0);
+
+  if (bgColor > 0 && fgColor > 0) {
+    interrupt(16, 1536, 4096 * (bgColor - 1) + 256 * (fgColor - 1), 0, 6223);
+  }
 }
 
 /* ^^^^^^^^^^^^^^^^^^^^^^^^ */
