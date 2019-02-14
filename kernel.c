@@ -38,17 +38,20 @@ int div(int a, int b);
 
 void main()
 {
-   char string[81];
    char buffer[512];
-   int test = 0;
+   int i;
    makeInterrupt21();
+   for (i = 0; i < 512; ++i) {
+     buffer[i] = 0;
+   }
+   buffer[0] = 1;
+   buffer[1] = 11;
+   buffer[511] = '\0';
+   interrupt(33, 6, buffer, 258, 0);
+   interrupt(33, 12, buffer[0] + 1, buffer[1]+1, 0);
    printLogo();
    interrupt(33, 2, buffer, 30, 0);
    interrupt(33, 0, buffer, 0, 0);
-   /* printString("Hello world.\r\n\0", 1); */
-   interrupt(33, 0, "Hola mondo.\r\n\0", 0, 0);
-   interrupt(33, 12, 2, 12, 0);
-   interrupt(33, 0, "Hola mondo.\r\n\0", 0, 0);
    while(1);
 }
 
@@ -170,16 +173,17 @@ int div(int a, int b) {
   return (q - 1);
 }
 
-void readSector(char* bx, int count) {
+void readSector(char* bx, int sector) {
   int ah, al, dl;
   int relSecNo, headNo, trackNo;
   int ax, cx, dx;
   ah = 2;
   al = 1;
-  trackNo = div(count, 36);
-  relSecNo = mod(count, 18) + 1;
-  headNo = mod(div(count, 18), 2);
   dl = 0;
+
+  relSecNo = mod(sector, 18) + 1;
+  headNo = mod(div(sector, 18), 2);
+  trackNo = div(sector, 36);
 
   ax = ah * 256 + al;
   cx = trackNo * 256 + relSecNo;
@@ -188,18 +192,18 @@ void readSector(char* bx, int count) {
   interrupt(19, ax, bx, cx, dx);
 }
 
-void writeSector(char* buffer, int count) {
+void writeSector(char* buffer, int sector) {
   int ah, al, dl;
   int relSecNo, headNo, trackNo;
   int ax, cx, dx;
-  ah = 2;
+  ah = 3;
   al = 1;
-  trackNo = div(count, 36);
-  relSecNo = mod(count, 18) + 1;
-  headNo = mod(div(count, 18), 2);
+  trackNo = div(sector, 36);
+  relSecNo = mod(sector, 18) + 1;
+  headNo = mod(div(sector, 18), 2);
   dl = 0;
 
-  ax = 769;
+  ax = ah * 256 + al;
   cx = trackNo * 256 + relSecNo;
   dx = headNo * 256 + dl;
 
@@ -225,7 +229,6 @@ void clearScreen(int bgColor, int fgColor) {
 
 void handleInterrupt21(int ax, int bx, int cx, int dx)
 {
-/*   return;  */
    switch(ax) {
       case 0: printString(bx,cx); break;
       case 1: readString(bx); break;
