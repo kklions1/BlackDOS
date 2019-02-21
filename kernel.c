@@ -35,12 +35,17 @@ void readInt(int* n);
 void writeInt(int n, int d);
 int mod(int a, int b);
 int div(int a, int b);
+void readFile(int, int, int);
+void deleteFile(int);
+void writeFile(int, int, int);
+void error(int);
 
 void main()
 {
-   char buffer[512];
-   int i;
+   char buffer[12288];
+   int size;
    makeInterrupt21();
+   #if 0
    for (i = 0; i < 512; ++i) {
      buffer[i] = 0;
    }
@@ -52,6 +57,21 @@ void main()
    printLogo();
    interrupt(33, 2, buffer, 30, 0);
    interrupt(33, 0, buffer, 0, 0);
+   #endif
+   /* Step 0 - config file */
+   interrupt(33, 2, buffer, 258, 0);
+   interrupt(33, 12, buffer[0]+1, buffer[1]+1, 0);
+   printLogo();
+
+   /* Step 1 - load/edit/print file */
+   interrupt(33, 3, "spc03\0", buffer, &size);
+   buffer[7] = '2';
+   buffer[8] = '0';
+   buffer[9] = '1';
+   buffer[10] = '9';
+   interrupt(33, 0, buffer, 0, 0);
+   interrupt(33, 0, "\r\n\0", 0, 0);
+
    while(1);
 }
 
@@ -224,6 +244,89 @@ void clearScreen(int bgColor, int fgColor) {
   }
 }
 
+/* How is this not in this version of C */
+void memcopy(char* source, char* destination, int size) {
+  int i = 0;
+  while (i < size) {
+    destination[i] = source[i];
+    ++i;
+  }
+}
+
+int compareFilenames(char* seeking, char* fromDisk) {
+  int i = 0;
+  // Fileanmes shouldn't be null terminated, but if there is one, then stop? i guess?
+  while (seeking[i] != '\0') {
+    if (i > 8) {
+      // filenames are limited to 8 characters
+      return 0;
+    }
+    if (seeking[i] != fromDisk[i]) {
+      // if a character isnt the same, return 'false'
+      return 0;
+    }
+    ++i;
+  }
+  // if we get here, then the filenames should be the same
+  return 1;
+}
+
+void readFile(char* fname, char* buffer, int* size) {
+  char directory[512];
+  char filename[8];
+  char* currentEntry;
+  char* currentEntryEnd;
+  char* currentSector;
+  int filenamesSame = 0;
+  int sectorCount = 0;
+
+  readSector(directory, 257);
+  currentEntry = directory;
+
+  while (currentEntry < directory + 512) {
+    currentEntryEnd = currentEntry + 32;
+    // copy the current entry's filename to the temp filename
+    memcopy(currentEntry, filename, 8);
+    filenamesSame = compareFilenames(fname, filename);
+
+    if (filenamesSame == 1) {
+      currentSector = currentEntry + 8; // accounting for the filename
+      while (currentSector < currentEntryEnd) {
+        if (currentSector != 0) { // cannot use sector 0
+          readSector(buffer, *currentSector);
+          buffer += 512;
+          *size += 1;
+          sectorCount++;
+        }
+        currentSector++;
+      }
+      return;
+    } else {
+      currentEntry = currentEntry + 32;
+    }
+
+    error(0); // file not found
+    return;
+  }
+}
+
+void writeFile(char* name, char* buffer, int numberOfSectors) {
+
+}
+
+void deleteFile(char* name) {
+
+}
+
+void error(int bx) {
+  switch (bx) {
+    case 0: interrupt(33, 0, "File not found.\n\r\0", 0, 0); while(1); break;
+    case 1: interrupt(33, 0, "Bad file name.\r\n\0", 0, 0); while(1); break;
+    case 2: interrupt(33, 0, "Disk full.\r\n\0", 0, 0); while(1); break;
+    default: interrupt(33, 0, "General Error\r\n\0", 0, 0); while(1); break;
+  }
+}
+
 /* ^^^^^^^^^^^^^^^^^^^^^^^^ */
 /* MAKE FUTURE UPDATES HERE */
 
@@ -233,10 +336,14 @@ void handleInterrupt21(int ax, int bx, int cx, int dx)
       case 0: printString(bx,cx); break;
       case 1: readString(bx); break;
       case 2: readSector(bx, cx); break;
+      case 3: readFile(bx, cx, dx); break;
       case 6: writeSector(bx, cx); break;
+      case 7: deleteFile(bx); break;
+      case 8: writeFile(bx, cx, dx); break;
       case 12: clearScreen(bx, cx); break;
       case 13: writeInt(bx, cx); break;
       case 14: readInt(bx); break;
+      case 15: error(bx); break;
       default: printString("General BlackDOS error.\r\n\0");
     }
 }
