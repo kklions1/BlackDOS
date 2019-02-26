@@ -35,6 +35,7 @@ void readInt(int* n);
 void writeInt(int n, int d);
 int mod(int a, int b);
 int div(int a, int b);
+int findFirstFreeSector(char* map);
 void readFile(int, int, int);
 void deleteFile(int);
 void writeFile(int, int, int);
@@ -71,6 +72,8 @@ void main()
    buffer[10] = '9';
    interrupt(33, 0, buffer, 0, 0);
    interrupt(33, 0, "\r\n\0", 0, 0);
+
+   /* Step 2 - */
 
    while(1);
 }
@@ -305,12 +308,76 @@ void readFile(char* fname, char* buffer, int* size) {
       currentEntry = currentEntry + 32;
     }
 
-    error(0); // file not found
+    interrupt(33, 15, 0, 0, 0); // file not found
     return;
   }
 }
 
+/* Returns index of the first free sector in the map */
+int findFirstFreeSector(char* map) {
+  int i = 0;
+  while (i < 512) {
+    if (map[i] == 0) {
+      return i;
+    }
+    ++i;
+  }
+  /* Error code 2, no disk space */
+  interrupt(33, 15, 2, 0, 0);
+}
+
 void writeFile(char* name, char* buffer, int numberOfSectors) {
+  char directory[512]; /* Sector 257 */
+  char map[512]; /* Sector 256 */
+  char seekFilename[8];
+  char* currentEntry;
+  char* currentEntryEnd;
+  char* currentSector;
+  char* freeDirectory;
+  int i = 0;
+
+  readSector(directory, 257);
+  readSector(map, 256);
+
+  currentEntry = directory;
+  currentEntryEnd = currentEntry + 32;
+
+  while (currentEntry < directory + 512) {
+    memcopy(currentEntry, seekFilename, 8);
+
+    if (compareFilenames(name, seekFilename) == 1) {
+      interrupt(33, 15, 1, 0, 0);
+      return;
+    } else if (*currentEntry == 0) {
+      freeDirectory = currentEntry;
+      break;
+    }
+    currentEntry += 32;
+  }
+
+  if (currentEntry >= directory + 512) {
+    interrupt(33, 15, 2, 0, 0);
+    /* if we get here, then there is no space */
+  }
+
+  /* copy the name into the open directory */
+  while (name[i] != '\0') {
+    freeDirectory[i] = name[i];
+    ++i;
+  }
+
+  while (i < 8) {
+    freeDirectory[i] = 0;
+    ++i;
+  }
+
+  /* Find a free sector by searching through the map for a 0 */
+  i = 0;
+  currentSector = freeDirectory + 8;
+  currentEntryEnd = freeDirectory + 32;
+  while (i < numberOfSectors && currentSector < currentEntryEnd) {
+    findFirstFreeSector(map);
+  }
 
 }
 
