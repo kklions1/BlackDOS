@@ -329,12 +329,14 @@ int findFirstFreeSector(char* map) {
 void writeFile(char* name, char* buffer, int numberOfSectors) {
   char directory[512]; /* Sector 257 */
   char map[512]; /* Sector 256 */
+  char chunk[512];
   char seekFilename[8];
   char* currentEntry;
   char* currentEntryEnd;
   char* currentSector;
   char* freeDirectory;
   int i = 0;
+  int j = 0;
 
   readSector(directory, 257);
   readSector(map, 256);
@@ -376,13 +378,39 @@ void writeFile(char* name, char* buffer, int numberOfSectors) {
   currentSector = freeDirectory + 8;
   currentEntryEnd = freeDirectory + 32;
   while (i < numberOfSectors && currentSector < currentEntryEnd) {
-    findFirstFreeSector(map);
+    freeDirectory = findFirstFreeSector(map);
+    map[i] = 255;
+    *currentSector = findFirstFreeSector;
+    ++currentSector;
+    ++i;
+
+    j = 0;
+    while (j < 512) { 
+      chunk[j] = *buffer;
+      ++j;
+      ++buffer;
+    }
+
+    writeSector(chunk, freeDirectory);
+  }
+   
+  while (currentSector < currentEntryEnd) { 
+    *currentSector = 0;
+    ++currentSector;
   }
 
+  writeSector(directory, 257);
+  writeSector(map, 256);
 }
 
 void deleteFile(char* name) {
-
+  char directory[512], map[512], testFilename[8];
+  char* currentEntry;
+  char* currentEntryEnd;
+  char* currentSector;
+  char* filename;
+  int i = 0;
+  char deletedFilename[9];
 }
 
 void error(int bx) {
