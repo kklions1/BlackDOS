@@ -411,6 +411,16 @@ void deleteFile(char* name) {
   char* filename;
   int i = 0;
   char deletedFilename[9];
+
+  readSector(directory, 257);
+  readSector(map, 256);
+
+  currentEntry = directory;
+
+  while (currentEntry < directory + 512) { 
+    memcopy(currentEntry, testFilename, 8);
+    
+  }
 }
 
 void error(int bx) {
