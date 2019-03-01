@@ -40,6 +40,7 @@ void readFile(int, int, int);
 void deleteFile(int);
 void writeFile(int, int, int);
 void error(int);
+void unicornLogo();
 
 void main()
 {
@@ -62,7 +63,7 @@ void main()
    /* Step 0 - config file */
    interrupt(33, 2, buffer, 258, 0);
    interrupt(33, 12, buffer[0]+1, buffer[1]+1, 0);
-   printLogo();
+   unicornLogo();
 
    /* Step 1 - load/edit/print file */
    interrupt(33, 3, "spc03\0", buffer, &size);
@@ -99,6 +100,22 @@ void printString(char* c, int d)
     }
   }
   return;
+}
+
+void unicornLogo() {
+  printString("                    /\r\n\0", 0);
+  printString("               ,.. /\r\n\0", 0);
+  printString("             ,'   ';\r\n\0", 0);
+  printString("  ,,.__    _,' /';  .\r\n\0", 0);
+  printString(" :','  ~~~~    '. '~\r\n\0", 0);
+  printString(":' (   )         )::,\r\n\0", 0);
+  printString("'. '. .=----=..-~  .;'\r\n\0", 0);
+  printString(" '  ;'  ::   ':.  '\"\r\n\0", 0);
+  printString("   (:   ':    ;)\r\n\0", 0);
+  printString("    \\\\   '\"  ./\r\n\0", 0);
+  printString("     '\"      '\"\r\n\0", 0);
+  printString(" UnicornOS v. 1.01, c. 2018. Based on a project by M. Black. \r\n\0",0);
+  printString(" Author(s): Kevin Klions.\r\n\r\n\0",0);
 }
 
 void printLogo()
