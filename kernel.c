@@ -73,7 +73,11 @@ void main()
    interrupt(33, 0, buffer, 0, 0);
    interrupt(33, 0, "\r\n\0", 0, 0);
 
-   /* Step 2 - */
+   /* Step 2 - Write revised file */
+   interrupt(33, 8, "spr19\0", buffer, &size);
+
+   /* Step 3 - Delete original file */
+   // interrupt(33, 7, "spc03\0", 0, 0);
 
    while(1);
 }
@@ -260,7 +264,7 @@ int compareFilenames(char* seeking, char* fromDisk) {
   int i = 0;
   // Fileanmes shouldn't be null terminated, but if there is one, then stop? i guess?
   while (seeking[i] != '\0') {
-    if (i > 8) {
+    if (i >= 8) {
       // filenames are limited to 8 characters
       return 0;
     }
@@ -337,6 +341,7 @@ void writeFile(char* name, char* buffer, int numberOfSectors) {
   char* freeDirectory;
   int i = 0;
   int j = 0;
+  int freeSectorIndex;
 
   readSector(directory, 257);
   readSector(map, 256);
@@ -359,6 +364,7 @@ void writeFile(char* name, char* buffer, int numberOfSectors) {
 
   if (currentEntry >= directory + 512) {
     interrupt(33, 15, 2, 0, 0);
+    return;
     /* if we get here, then there is no space */
   }
 
@@ -377,24 +383,25 @@ void writeFile(char* name, char* buffer, int numberOfSectors) {
   i = 0;
   currentSector = freeDirectory + 8;
   currentEntryEnd = freeDirectory + 32;
+  freeSectorIndex = findFirstFreeSector(map);
   while (i < numberOfSectors && currentSector < currentEntryEnd) {
-    freeDirectory = findFirstFreeSector(map);
-    map[i] = 255;
-    *currentSector = findFirstFreeSector;
+    map[freeSectorIndex] = 255;
+    *currentSector = freeSectorIndex;
     ++currentSector;
     ++i;
+    freeSectorIndex++;
 
     j = 0;
-    while (j < 512) { 
+    while (j < 512) {
       chunk[j] = *buffer;
       ++j;
       ++buffer;
     }
 
-    writeSector(chunk, freeDirectory);
+    writeSector(chunk, freeSectorIndex);
   }
-   
-  while (currentSector < currentEntryEnd) { 
+
+  while (currentSector < currentEntryEnd) {
     *currentSector = 0;
     ++currentSector;
   }
@@ -405,21 +412,37 @@ void writeFile(char* name, char* buffer, int numberOfSectors) {
 
 void deleteFile(char* name) {
   char directory[512], map[512], testFilename[8];
-  char* currentEntry;
-  char* currentEntryEnd;
-  char* currentSector;
-  char* filename;
+  char* currentEntry, * currentEntryEnd, * currentSector, * filename;
   int i = 0;
-  char deletedFilename[9];
+  char deletedFilename[8];
 
   readSector(directory, 257);
   readSector(map, 256);
 
   currentEntry = directory;
 
-  while (currentEntry < directory + 512) { 
+  while (currentEntry < directory + 512) {
     memcopy(currentEntry, testFilename, 8);
-    
+
+    if (compareFilenames(name, testFilename) == 1) {
+      currentEntry[0] = 0;
+      currentSector = currentEntry + 8;
+
+      while (*currentSector != 0 && currentSector < currentEntry + 32) {
+        map[*currentSector] = 0;
+        ++currentSector;
+      }
+
+      writeSector(directory, 257);
+      writeSector(map, 256);
+      return;
+    } else {
+      currentEntry += 32;
+    }
+  }
+
+  if (currentEntry >= directory + 512) {
+    error(0);
   }
 }
 
