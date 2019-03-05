@@ -103,7 +103,7 @@ void printString(char* c, int d)
 }
 
 void unicornLogo() {
-  printString("                    /\r\n\0", 0);
+  printString("                     /\r\n\0", 0);
   printString("               ,.. /\r\n\0", 0);
   printString("             ,'   ';\r\n\0", 0);
   printString("  ,,.__    _,' /';  .\r\n\0", 0);
@@ -406,8 +406,7 @@ void writeFile(char* name, char* buffer, int numberOfSectors) {
     *currentSector = freeSectorIndex;
     ++currentSector;
     ++i;
-    freeSectorIndex++;
-
+    
     j = 0;
     while (j < 512) {
       chunk[j] = *buffer;
