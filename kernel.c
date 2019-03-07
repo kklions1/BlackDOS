@@ -54,7 +54,7 @@ void main()
    interrupt(33, 12, buffer[0] + 1, buffer[1]+1, 0);
    unicornLogo();
 
-   interrupt(33, 4, "kitty1\0", 2, 0);
+   interrupt(33, 4, "kitty2\0", 2, 0);
    interrupt(33, 0, "Error if this executes.\r\n\0", 0, 0);
    
    while(1);
@@ -462,10 +462,10 @@ void stop() {
 
 void error(int bx) {
   switch (bx) {
-    case 0: interrupt(33, 0, "File not found.\n\r\0", 0, 0); while(1); break;
-    case 1: interrupt(33, 0, "Bad file name.\r\n\0", 0, 0); while(1); break;
-    case 2: interrupt(33, 0, "Disk full.\r\n\0", 0, 0); while(1); break;
-    default: interrupt(33, 0, "General Error\r\n\0", 0, 0); while(1); break;
+    case 0: interrupt(33, 0, "File not found.\n\r\0", 0, 0); stop(); break;
+    case 1: interrupt(33, 0, "Bad file name.\r\n\0", 0, 0); stop(); break;
+    case 2: interrupt(33, 0, "Disk full.\r\n\0", 0, 0); stop(); break;
+    default: interrupt(33, 0, "General Error\r\n\0", 0, 0); stop(); break;
   }
 }
 
