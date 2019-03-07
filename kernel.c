@@ -41,45 +41,22 @@ void deleteFile(int);
 void writeFile(int, int, int);
 void error(int);
 void unicornLogo();
+void runProgram(char*, int);
+void stop();
+
 
 void main()
 {
    char buffer[12288];
    int size;
    makeInterrupt21();
-   #if 0
-   for (i = 0; i < 512; ++i) {
-     buffer[i] = 0;
-   }
-   buffer[0] = 1;
-   buffer[1] = 11;
-   buffer[511] = '\0';
-   interrupt(33, 6, buffer, 258, 0);
-   interrupt(33, 12, buffer[0] + 1, buffer[1]+1, 0);
-   printLogo();
-   interrupt(33, 2, buffer, 30, 0);
-   interrupt(33, 0, buffer, 0, 0);
-   #endif
-   /* Step 0 - config file */
    interrupt(33, 2, buffer, 258, 0);
-   interrupt(33, 12, buffer[0]+1, buffer[1]+1, 0);
+   interrupt(33, 12, buffer[0] + 1, buffer[1]+1, 0);
    unicornLogo();
 
-   /* Step 1 - load/edit/print file */
-   interrupt(33, 3, "spc03\0", buffer, &size);
-   buffer[7] = '2';
-   buffer[8] = '0';
-   buffer[9] = '1';
-   buffer[10] = '9';
-   interrupt(33, 0, buffer, 0, 0);
-   interrupt(33, 0, "\r\n\0", 0, 0);
-
-   /* Step 2 - Write revised file */
-   interrupt(33, 8, "spr19\0", buffer, &size);
-
-   /* Step 3 - Delete original file */
-   // interrupt(33, 7, "spc03\0", 0, 0);
-
+   interrupt(33, 4, "kitty1\0", 2, 0);
+   interrupt(33, 0, "Error if this executes.\r\n\0", 0, 0);
+   
    while(1);
 }
 
@@ -462,6 +439,27 @@ void deleteFile(char* name) {
   }
 }
 
+void runProgram(char* name, int segment) {
+  char buffer[12288];
+  int segmentLocation;
+  int offset = 0;
+  
+  interrupt(33, 3, name, buffer, segment, 0);
+
+  segmentLocation = segment * 4096;
+
+  while (offset < 12288) {
+    putInMemory(segmentLocation, offset, buffer[offset]);
+    ++offset;
+  }
+
+  launchProgram(segmentLocation);  
+}
+
+void stop() {
+  while(1);
+}
+
 void error(int bx) {
   switch (bx) {
     case 0: interrupt(33, 0, "File not found.\n\r\0", 0, 0); while(1); break;
@@ -481,6 +479,8 @@ void handleInterrupt21(int ax, int bx, int cx, int dx)
       case 1: readString(bx); break;
       case 2: readSector(bx, cx); break;
       case 3: readFile(bx, cx, dx); break;
+      case 4: runProgram(bx, cx); break;
+      case 5: stop(); break;
       case 6: writeSector(bx, cx); break;
       case 7: deleteFile(bx); break;
       case 8: writeFile(bx, cx, dx); break;
