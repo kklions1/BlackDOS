@@ -54,7 +54,7 @@ void main()
    interrupt(33, 12, buffer[0] + 1, buffer[1]+1, 0);
    printLogo();
 
-   interrupt(33, 4, "kitty2\0", 2, 0);
+   interrupt(33, 4, "Stenv\0", 2, 0);
    interrupt(33, 0, "Error if this executes.\r\n\0", 0, 0);
    
    while(1);
@@ -291,7 +291,7 @@ void readFile(char* fname, char* buffer, int* size) {
     currentEntryEnd = currentEntry + 32;
     // copy the current entry's filename to the temp filename
     memcopy(currentEntry, filename, 8);
-    filenamesSame = compareFilenames(fname, filename);
+    filenamesSame = compareFilenames(fname, filename);    
 
     if (filenamesSame == 1) {
       currentSector = currentEntry + 8; // accounting for the filename
@@ -308,10 +308,9 @@ void readFile(char* fname, char* buffer, int* size) {
     } else {
       currentEntry = currentEntry + 32;
     }
-
-    interrupt(33, 15, 0, 0, 0); // file not found
-    return;
   }
+  interrupt(33, 15, 0, 0, 0);
+  return;
 }
 
 /* Returns index of the first free sector in the map */

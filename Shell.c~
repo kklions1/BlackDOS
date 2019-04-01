@@ -1,0 +1,122 @@
+#include "blackdos.h"
+
+void parseCommand(char*);
+int strCompare(char*, char*);
+void strSplitter(char*, char*, char*, char);
+int findInString(char*, char);
+
+void main() {
+  char config[512];
+  char command[128];
+
+  /* Read the config file and clear the screen */
+  interrupt(33, 2, config, 258, 0);
+  //  interrupt(33, 12, config[0] + 1, config[1]+1, 0);
+
+  while(1) {
+    PRINTS("^(~(oo)~)^ > \0"); 
+    SCANS(command);
+    PRINTS("\r\n\0");
+    PRINTS("\r\n\0");
+    parseCommand(command, config);
+  }
+}
+
+int strCompare(char* arg1, char* arg2) {
+  int i = 0;
+
+  PRINTS(arg1);
+  PRINTS("\r\n\0");
+  PRINTS(arg2);
+  PRINTS("\r\n\0");
+  
+  while (arg1[i] != '\0') {
+    if (arg1[i] != arg2[i]) {
+      return 0;
+    }
+    ++i;
+  }
+
+  return 1;
+}
+
+/* Splits the original string into two separate strings, arg1 and arg2, on a delimiter character
+   then adds a null terminator to arg1 and arg2 */ 
+void strSplitter(char* original, char* arg1, char* arg2, char delim) {
+  int i; // Index of the delimiter character
+  int j = 0; // Position in arg1
+  int k = 0; // Position in arg2
+  
+  i = findInString(original, delim);
+  if (i == -1) {
+    while (original[j] != '\0') {
+      arg1[j] = original[j];
+      ++j;
+    }
+    arg1[j] = '\0';
+    return;
+  } else {
+    while (j < i) {
+      arg1[j] = original[j];
+      ++j;
+    }
+    arg1[j] = '\0'; // Null terminate the string after the loop
+    ++j;
+
+    while (original[j] != '\0') {
+      arg2[k] = original[j];
+      ++k;
+      ++j;
+    }
+    arg2[k] = '\0'; 
+  }
+}
+
+/* Returns the index of the first occurence of the target character in the string */ 
+int findInString(char* string, char target) {
+  int i = 0;
+
+  while (string[i] != '\0') {
+    if (string[i] == target) {
+      return i;
+    } else {
+      ++i;
+    }
+  }
+  return -1;
+}
+
+void parseCommand(char* command, char* config) {
+  char arg1[64];
+  char arg2[64];
+
+  // For Testing
+  char testCommand[128];
+
+  strSplitter(command, arg1, arg2, ' ');
+  
+  if (strCompare(arg1, "boot\0")) {
+    // Reboot
+    interrupt(33, 11, 0, 0, 0, 0);
+  } else if (strCompare(arg1, "clrs\0")) {
+    // Clear screen
+    interrupt(33, 12, config[0] + 1, config[1] + 1, 0);
+  } else if (strCompare(arg1, "test\0")) {
+    SCANS(testCommand);
+    strSplitter(testCommand, arg1, arg2, ' ');
+    PRINTS("TestCommand: \0");
+    PRINTS(testCommand);
+    PRINTS("\r\n");
+    PRINTS("arg1: \0");
+    PRINTS(arg1);
+    PRINTS("\r\n");
+    PRINTS("arg2: \0");
+    PRINTS(arg2);
+    PRINTS("\r\n");
+  } else {
+    PRINTS("Command '");
+    PRINTS(command);
+    PRINTS("' not found.\r\n\0");
+    PRINTS("\r\n\0");
+  }
+}
