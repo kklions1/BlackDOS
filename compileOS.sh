@@ -15,3 +15,4 @@ ld86 -o Shell -d Shell.o bdos_asm.o
 ./loadFile Shell
 
 # Pre-installed Programs
+./loadFile Stenv
